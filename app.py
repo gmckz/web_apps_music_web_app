@@ -1,27 +1,47 @@
 import os
 from flask import Flask, request
+from lib.database_connection import get_flask_database_connection
+from lib.album_repository import AlbumRepository
+from lib.album import Album
+from lib.artist_repository import ArtistRepository
+from lib.artist import Artist
 
 # Create a new Flask app
 app = Flask(__name__)
 
 # == Your Routes Here ==
 
-# == Example Code Below ==
+@app.route('/albums', methods=['GET'])
+def get_albums():
+    connection = get_flask_database_connection(app)
+    repository = AlbumRepository(connection)
+    return '\n'.join(f"{album}" for album in repository.all())
 
-# GET /emoji
-# Returns a emojiy face
-# Try it:
-#   ; curl http://localhost:5000/emoji
-@app.route('/emoji', methods=['GET'])
-def get_emoji():
-    return ":)"
+@app.route('/albums', methods=['POST'])
+def post_albums():
+    connection = get_flask_database_connection(app)
+    repository = AlbumRepository(connection)
+    title = request.form['title']
+    release_year = request.form['release_year']
+    artist_id = request.form['artist_id']
+    repository.create(Album(None, title, release_year, artist_id))
+    return ''
 
-# This imports some more example routes for you to see how they work
-# You can delete these lines if you don't need them.
-from example_routes import apply_example_routes
-apply_example_routes(app)
 
-# == End Example Code ==
+@app.route('/artists', methods=['GET'])
+def get_artists():
+    connection = get_flask_database_connection(app)
+    repository = ArtistRepository(connection)
+    return ', '.join(f"{album.name}" for album in repository.all())
+
+@app.route('/artists', methods=['POST'])
+def post_artists():
+    connection = get_flask_database_connection(app)
+    repository = ArtistRepository(connection)
+    name = request.form['name']
+    genre = request.form['genre']
+    repository.create(Artist(None, name, genre))
+    return ''
 
 # These lines start the server if you run this file directly
 # They also start the server configured to use the test database
